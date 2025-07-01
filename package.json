@@ -1,0 +1,35 @@
+{
+  "name": "Spaider",
+  "version": "1.0.0",
+  "description": "Deterministic-first ai code assistant",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test-a": "ts-node scripts/test-a.ts",
+    "test-b": "ts-node scripts/test-b.ts",
+    "test-c": "ts-node scripts/test-c.ts"
+  },
+  "dependencies": {
+    "dedent": "^1.6.0",
+    "diff": "^5.1.0",
+    "dotenv": "^17.0.1",
+    "glob": "^10.3.0",
+    "openai": "^4.90.0",
+    "ts-morph": "^26.0.0",
+    "zod": "^3.21.0"
+  },
+  "devDependencies": {
+    "@types/diff": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "ai",
+    "code-assistant",
+    "ast",
+    "typescript"
+  ],
+  "author": "Dimitar Slaev <dimslaev@gmail.com>",
+  "license": "MIT"
+}
