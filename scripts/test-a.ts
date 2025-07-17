@@ -11,8 +11,8 @@ async function main() {
     (result) => {
       if (!result.result) return;
       result.assert(
-        result.result.intent.hasFileChanges,
-        Assertions.isTrue("Should have file changes intent")
+        result.result.intent.mode === "edit",
+        Assertions.isTrue("Should be in edit mode")
       );
       result.assert(
         result.result.intent.scope,

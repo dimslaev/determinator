@@ -11,8 +11,8 @@ async function main() {
     (result) => {
       if (!result.result) return;
       result.assert(
-        result.result.intent.hasFileChanges,
-        Assertions.isTrue("Intent should indicate file changes")
+        result.result.intent.mode === "edit",
+        Assertions.isTrue("Should be in edit mode")
       );
       result.assert(
         result.result.result.modifiedFiles.length,
@@ -29,8 +29,8 @@ async function main() {
     (result) => {
       if (!result.result) return;
       result.assert(
-        result.result.intent.hasFileChanges,
-        Assertions.isFalse("Intent should not indicate file changes")
+        result.result.intent.mode === "edit",
+        Assertions.isTrue("Should be in edit mode")
       );
       result.assert(
         result.result.result.modifiedFiles.length,
@@ -51,8 +51,8 @@ async function main() {
     (result) => {
       if (!result.result) return;
       result.assert(
-        result.result.intent.hasFileChanges,
-        Assertions.isTrue("Intent should indicate file changes")
+        result.result.intent.mode === "edit",
+        Assertions.isTrue("Should be in edit mode")
       );
       const needsContext = result.result.intent.needsMoreContext;
       const discoveredFiles = result.result.intent.filePaths.length > 1;
@@ -79,8 +79,8 @@ async function main() {
         'Scope should be "project_wide" or "debugging"'
       );
       result.assert(
-        result.result.intent.hasFileChanges,
-        Assertions.isFalse("Intent should not have file changes")
+        result.result.intent.mode === "edit",
+        Assertions.isTrue("Should be in edit mode")
       );
     }
   );

@@ -110,10 +110,11 @@ export namespace AI {
 
       Based on this information, determine:
       1. What is the scope of the request [current_file, project_wide, debugging, testing, general, unknown]
-      2. A clear description of what needs to be done (be specific about the scope and impact)
-      3. Whether the user intends to perform any file operations (create, modify, or delete files) - set hasFileChanges to true for requests that involve writing code, adding comments, creating files, or making any modifications to the codebase
-      4. Whether you need additional files to understand the context fully, and if so, which ones
-      4. Any semantic hints or clues that could assist in discovering relevant code or files.
+      2. What mode - whether the user is requesting information (ask) or wants to make code changes (edit)
+      3. A clear description of what needs to be done (be specific about the scope and impact)
+      4. Whether the user intends to perform any file operations (create, modify, or delete files) - set hasFileChanges to true for requests that involve writing code, adding comments, creating files, or making any modifications to the codebase
+      5. Whether you need additional files to understand the context fully, and if so, which ones
+      6. Any semantic hints or clues that could assist in discovering relevant code or files.
       
       Focus on understanding the core intent rather than implementation details.
       If the request is ambiguous, ask the user for more information.
@@ -230,5 +231,49 @@ export namespace AI {
 
     // Remove any potential markdown code block markers that might have been added
     return rewrittenContent.replace(/^```[\w]*\n?/, "").replace(/\n?```$/, "");
+  }
+
+  export async function generateAnswer(
+    userPrompt: string,
+    intent: Intent,
+    files: FileContext[],
+    projectTree?: string
+  ): Promise<string> {
+    console.log(`Generating answer for intent: ${intent.description}`);
+
+    const filePreview = formatFilePreviews(files);
+    const semanticSummary = formatFileSemantics(files);
+
+    const prompt = `
+      User Question: ${userPrompt}
+      
+      Intent Analysis:
+      - Scope: ${intent.scope}
+      - Description: ${intent.description}
+
+      ${projectTree ? `Project Structure:\n${projectTree}` : ""}
+
+      Files analyzed:
+      ${filePreview}
+
+      Semantic Analysis:
+      ${semanticSummary}
+      
+      Based on this codebase analysis, provide a comprehensive, accurate answer to the user's question. 
+      Include specific code examples, file references, and explanations where relevant.
+      If you cannot find the requested information in the provided files, clearly state what's missing.
+      Focus on being helpful and precise while avoiding speculation about code not shown.
+    `;
+
+    const response = await complete({
+      messages: [
+        system(
+          "You are a helpful software engineering assistant. Provide clear, accurate, and detailed answers based on the code analysis provided."
+        ),
+        user(prompt),
+      ],
+    });
+
+    return response.choices[0].message.content!.trim();
   }
 }

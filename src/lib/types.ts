@@ -27,6 +27,7 @@ export interface PipelineContext {
   projectTree?: string;
   intent: Intent;
   changes: Change[];
+  answer?: string;
   result: {
     modifiedFiles: string[];
     deletedFiles: string[];

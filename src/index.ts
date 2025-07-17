@@ -1,16 +1,16 @@
 import { pipeline } from "./lib/pipeline";
+import { PipelineContext, Intent } from "./lib/types";
 import {
   generateProjectTree,
   readFiles,
   parseAST,
   analyzeIntent,
   discoverFiles,
-  needsMoreContext,
   generateChanges,
   applyChanges,
+  generateAnswer,
 } from "./steps";
-import { PipelineContext, Intent } from "./lib/types";
-import { hasFileChanges } from "./steps/conditions";
+import { needsMoreContext, isAskMode, isEditMode } from "./steps/conditions";
 
 export async function processRequest(
   userPrompt: string,
@@ -18,6 +18,7 @@ export async function processRequest(
   projectRoot: string = process.cwd()
 ): Promise<{
   intent: Intent;
+  answer?: string;
   result: {
     modifiedFiles: string[];
     deletedFiles: string[];
@@ -34,8 +35,8 @@ export async function processRequest(
     projectRoot,
     intent: {
       scope: "general",
+      mode: "ask",
       description: "",
-      hasFileChanges: false,
       needsMoreContext: false,
       filePaths: [],
       searchTerms: [],
@@ -58,7 +59,11 @@ export async function processRequest(
       steps: [discoverFiles, readFiles, parseAST],
     },
     {
-      when: hasFileChanges,
+      when: isAskMode,
+      steps: [generateAnswer],
+    },
+    {
+      when: isEditMode,
       steps: [generateChanges, applyChanges],
     }
   );
@@ -67,6 +72,7 @@ export async function processRequest(
 
   return {
     intent: ctx.intent!,
+    answer: ctx.answer,
     result: ctx.result,
   };
 }

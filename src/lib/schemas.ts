@@ -5,15 +5,15 @@ export const IntentSchema = z.object({
     .enum(["current_file", "project_wide", "debugging", "testing", "general"])
     .describe("The scope of the intended operation or analysis"),
 
+  mode: z
+    .enum(["ask", "edit"])
+    .describe("Whether the user is asking a question or wants to modify files"),
+
   description: z
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(500, "Description too long")
     .describe("Clear description of what the user wants to accomplish"),
-
-  hasFileChanges: z
-    .boolean()
-    .describe("Whether the user has intention to perform any file operations"),
 
   needsMoreContext: z
     .boolean()

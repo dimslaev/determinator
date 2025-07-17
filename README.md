@@ -32,13 +32,26 @@ choco install ripgrep
 
 A pipeline architecture using specialized services and conditional steps:
 
-1. **Project Tree** - Creates an overview of the codebase structure
-2. **File Reading** - Loads initial files into context
-3. **AST Parsing** - Extracts semantic information (imports, exports, functions, classes)
-4. **Intent Analysis** - Uses structured LLM outputs to understand what needs to be done
-5. **File Discovery** - Automatically finds additional relevant files if needed
-6. **Change Generation** - Creates precise modifications using structured schemas
-7. **Change Application** - Safely applies all changes across the discovered files
+```ts
+const processRequest = pipeline<PipelineContext>(
+  generateProjectTree,
+  readFiles,
+  parseAST,
+  analyzeIntent,
+  {
+    when: needsMoreContext,
+    steps: [discoverFiles, readFiles, parseAST],
+  },
+  {
+    when: isAskMode,
+    steps: [generateAnswer],
+  },
+  {
+    when: isEditMode,
+    steps: [generateChanges, applyChanges],
+  }
+);
+```
 
 ## Testing
 
