@@ -107,12 +107,28 @@ npm uninstall -g spaider
 
 ## Environment Variables
 
-The package expects these environment variables (create `.env` file):
+**For Development/Testing:**
+Create a `.env` file in the project root:
 
 ```
 OPENAI_API_KEY=your_openai_api_key
 OPENAI_MODEL=gpt-4o-mini  # or your preferred model
 ```
+
+**For End Users:**
+Spaider automatically looks for `.env` files in the user's project directory. Users will create their own `.env` file:
+
+```bash
+# In their project root
+echo "OPENAI_API_KEY=their_api_key" > .env
+echo "OPENAI_MODEL=gpt-4o-mini" >> .env
+```
+
+The CLI will:
+
+1. Look for `.env` in the user's project root (`--root` option)
+2. Fall back to current working directory
+3. Show helpful error messages if OPENAI_API_KEY is missing
 
 ## Success!
 

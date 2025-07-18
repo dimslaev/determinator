@@ -65,6 +65,16 @@ npx spaider --help
 
 ## CLI Usage
 
+First, create a .env file in your project root:
+
+```bash
+OPENAI_BASE_URL=https://api.infomaniak.com/1/ai
+OPENAI_MODEL=llama3
+OPENAI_API_KEY=your_api_key_here
+```
+
+Then you can use the cli:
+
 ```bash
 # Using global installation
 spaider "Add a comment to explain this function" -f src/auth.ts
