@@ -59,7 +59,7 @@ export namespace AI {
   ): Promise<T> {
     const messages = [
       system(
-        "You must respond with valid JSON that matches the provided schema. Do not include any text outside the JSON response."
+        "You must respond with valid JSON that matches the provided schema. Do not include any text outside the JSON response. Do not wrap the JSON in markdown code blocks or use ``` formatting."
       ),
       user(prompt),
     ];
@@ -71,16 +71,34 @@ export namespace AI {
 
     const content = response.choices[0].message.content!;
 
+    // Remove any potential markdown code block markers that might have been added
+    const cleanContent = content
+      .replace(/^```[\w]*\n?/, "")
+      .replace(/\n?```$/, "");
+
     try {
-      const parsed = JSON.parse(content);
+      const parsed = JSON.parse(cleanContent);
       return schema.parse(parsed);
     } catch (error) {
-      console.error(
-        "Failed to parse AI response as JSON:\n",
-        content.slice(0, 500),
-        "\n",
-        error
-      );
+      console.error("=== JSON PARSING ERROR ===");
+      console.error("Full response content:");
+      console.error(cleanContent);
+      console.error("========================");
+      console.error("Error:", error);
+
+      // If JSON parse fails, try to identify common issues
+      if (error instanceof SyntaxError) {
+        console.error("JSON Syntax Error detected. Common issues:");
+        if (cleanContent.includes("`")) {
+          console.error("- Contains backticks (`) which are not valid in JSON");
+        }
+        if (cleanContent.includes("\n") && !cleanContent.includes("\\n")) {
+          console.error("- Contains unescaped newlines");
+        }
+        if (cleanContent.match(/[^\\]"/)) {
+          console.error("- Contains unescaped quotes");
+        }
+      }
 
       throw error;
     }
@@ -109,12 +127,12 @@ export namespace AI {
       ${projectTree}
 
       Based on this information, determine:
-      1. What is the scope of the request [current_file, project_wide, debugging, testing, general, unknown]
+      1. What is the scope of the request [current_file, project_wide, debugging, testing, general]
       2. What mode - whether the user is requesting information (ask) or wants to make code changes (edit)
       3. A clear description of what needs to be done (be specific about the scope and impact)
-      4. Whether the user intends to perform any file operations (create, modify, or delete files) - set hasFileChanges to true for requests that involve writing code, adding comments, creating files, or making any modifications to the codebase
-      5. Whether you need additional files to understand the context fully, and if so, which ones
-      6. Any semantic hints or clues that could assist in discovering relevant code or files.
+      4. Whether you need more context to understand the request fully - set needsMoreContext to true if additional files or information are needed
+      5. List of specific file paths that are relevant to this intent (filePaths)
+      6. Search terms that could help discover relevant code or files (searchTerms)
       
       Focus on understanding the core intent rather than implementation details.
       If the request is ambiguous, ask the user for more information.
@@ -155,16 +173,36 @@ export namespace AI {
       Files provided:
       ${filePreview}
       
-      Based on this information, determine:
-      1. The operation type: [new_file, delete_file, modify_file]
-      2. The path to the file being created, deleted or modified
-      3. The modification type: [replace_block, add_block, remove_block, none]. For deleted files, use type none.
-      4. The description of the modification relative to the code blocks. Leave empty if not applicable.
-      5. The old code block, applicable when modifying existing files. Leave empty if not applicable.
-      6. The new code block, applicable when modifying existing files or creating new ones. Leave empty if not applicable.
+      Based on this information, generate a JSON response with a "changes" array containing change objects. Each change object should have:
+      1. operation: [new_file, delete_file, modify_file]
+      2. filePath: The path to the file being created, deleted or modified
+      3. modificationType: [replace_block, add_block, remove_block, none]. For deleted files, use type none.
+      4. modificationDescription: The description of the modification relative to the code blocks. Leave empty if not applicable.
+      5. oldCodeBlock: Applicable when modifying existing files. Leave empty if not applicable.
+      6. newCodeBlock: Applicable when modifying existing files or creating new ones. Leave empty if not applicable.
       
       Focus on generating precise changes aligned with existing code structure while maintaining high code quality. 
       For modifications, generate multiple changes per file if necessary.
+      
+      CRITICAL: Return ONLY valid JSON. Do not use backticks, template literals, or multi-line strings. 
+      Escape all quotes and newlines properly in JSON strings.
+      
+      Use \\n for newlines within strings, not actual line breaks.
+      Use \" for quotes within strings.
+      
+      Return the response in this exact format:
+      {
+        "changes": [
+          {
+            "operation": "modify_file",
+            "filePath": "path/to/file.ts",
+            "modificationType": "add_block",
+            "modificationDescription": "Description of change",
+            "oldCodeBlock": "",
+            "newCodeBlock": "// New code here\\nfunction example() {\\n  return true;\\n}"
+          }
+        ]
+      }
     `;
 
     const result = await completeStructured<Changes>(
