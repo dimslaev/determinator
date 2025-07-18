@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "description": "Deterministic-first ai code assistant",
   "main": "dist/index.js",
+  "bin": {
+    "spaider": "dist/cli.js"
+  },
   "scripts": {
     "build": "tsc",
-    "test-a": "ts-node scripts/test-a.ts",
-    "test-b": "ts-node scripts/test-b.ts",
-    "test-c": "ts-node scripts/test-c.ts"
+    "cli": "NODE_ENV=production ts-node src/cli.ts",
+    "test-a": "NODE_ENV=development ts-node scripts/test-a.ts",
+    "test-b": "NODE_ENV=development ts-node scripts/test-b.ts",
+    "test-c": "NODE_ENV=development ts-node scripts/test-c.ts"
   },
   "dependencies": {
     "dedent": "^1.6.0",

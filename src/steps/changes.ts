@@ -1,5 +1,6 @@
 import { AI } from "../services/ai";
 import { PipelineStep, PipelineContext } from "../lib/types";
+import { Logger } from "../services/logger";
 
 export const generateChanges: PipelineStep<PipelineContext> = async (ctx) => {
   if (!ctx.intent || !ctx.projectTree) {
@@ -8,6 +9,8 @@ export const generateChanges: PipelineStep<PipelineContext> = async (ctx) => {
     );
   }
 
+  Logger.info("Generating changes ...");
+
   ctx.changes = await AI.generateChanges(
     ctx.userPrompt,
     ctx.intent,
@@ -15,6 +18,6 @@ export const generateChanges: PipelineStep<PipelineContext> = async (ctx) => {
     ctx.projectTree
   );
 
-  console.log(`✓ Generated ${ctx.changes.length} changes`);
+  Logger.debug(`✓ Generated ${ctx.changes.length} changes`);
   return ctx;
 };

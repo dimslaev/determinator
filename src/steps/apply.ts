@@ -6,6 +6,7 @@ import {
   readFile,
   resolveFilePath,
 } from "../lib/utils";
+import { Logger } from "../services/logger";
 
 export const applyChanges: PipelineStep<PipelineContext> = async (ctx) => {
   if (!ctx.changes) {
@@ -25,12 +26,14 @@ export const applyChanges: PipelineStep<PipelineContext> = async (ctx) => {
       const changes = changesPerFile[filePath];
 
       if (changes[0].operation === "delete_file") {
+        Logger.info("Deleting file", filePath);
+
         try {
           await safeDeleteFile(filePath, ctx.projectRoot);
           ctx.result.deletedFiles.push(filePath);
-          console.log("File deleted successfully:", filePath);
+          Logger.debug("File deleted successfully:", filePath);
         } catch (error) {
-          console.error("Error deleting file:", error);
+          Logger.error("Error deleting file:", error);
         }
         return;
       }
@@ -38,6 +41,8 @@ export const applyChanges: PipelineStep<PipelineContext> = async (ctx) => {
       let fileContent = "";
 
       if (changes[0].operation !== "new_file") {
+        Logger.info("Creating file", filePath);
+
         fileContent = await readFile(
           resolveFilePath(filePath, ctx.projectRoot)
         );
@@ -45,6 +50,8 @@ export const applyChanges: PipelineStep<PipelineContext> = async (ctx) => {
         if (!fileContent) {
           throw new Error(`Could not read file ${filePath}`);
         }
+      } else {
+        Logger.info("Modifying file", filePath);
       }
 
       const newFileContent = await AI.applyFileChanges(changes, fileContent);
@@ -56,9 +63,9 @@ export const applyChanges: PipelineStep<PipelineContext> = async (ctx) => {
         } else {
           ctx.result.modifiedFiles.push(filePath);
         }
-        console.log("File written successfully:", filePath);
+        Logger.debug("File written successfully:", filePath);
       } catch (error) {
-        console.error("Error writing file:", error);
+        Logger.error("Error writing file:", error);
         throw error; // Re-throw to properly handle the error
       }
     })

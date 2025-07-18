@@ -1,4 +1,5 @@
 import { PipelineStepDefinition } from "./types";
+import { Logger } from "../services/logger";
 
 export const pipeline =
   <T>(...steps: PipelineStepDefinition<T>[]) =>
@@ -8,27 +9,27 @@ export const pipeline =
     for (const step of steps) {
       if (typeof step === "function") {
         // Simple step function
-        console.log(`Executing step: ${step.name}`);
+        Logger.debug(`Executing step: ${step.name}`);
         result = await step(result);
       } else if (Array.isArray(step)) {
         // Conditional step: [condition, function]
         const [condition, fn] = step;
         if (condition(result)) {
-          console.log(`Executing conditional step: ${fn.name}`);
+          Logger.debug(`Executing conditional step: ${fn.name}`);
           result = await fn(result);
         } else {
-          console.log(`Skipping conditional step: ${fn.name}`);
+          Logger.debug(`Skipping conditional step: ${fn.name}`);
         }
       } else {
         // Object syntax: { when: condition, steps: [...] }
         if (step.when(result)) {
-          console.log(`Executing step group (${step.steps.length} steps)`);
+          Logger.debug(`Executing step group (${step.steps.length} steps)`);
           for (const fn of step.steps) {
-            console.log(`  - ${fn.name}`);
+            Logger.debug(`  - ${fn.name}`);
             result = await fn(result);
           }
         } else {
-          console.log(`Skipping step group (${step.steps.length} steps)`);
+          Logger.debug(`Skipping step group (${step.steps.length} steps)`);
         }
       }
     }

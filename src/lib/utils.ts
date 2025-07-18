@@ -4,6 +4,7 @@ import { ChatCompletionMessageParam } from "openai/resources/chat";
 import dedent from "dedent";
 import { Change, FileContext } from "./types";
 import { MAX_FILE_PREVIEW_LINES } from "./const";
+import { Logger } from "../services/logger";
 
 export function message(
   role: "system" | "user",
@@ -92,7 +93,7 @@ export async function loadFileContexts(
           language: detectLanguage(path) as FileContext["language"],
         };
       } catch (error) {
-        console.warn(`Failed to read discovered file ${path}`);
+        Logger.warn(`Failed to read discovered file ${path}`);
         return null;
       }
     })

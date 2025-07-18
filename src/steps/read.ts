@@ -5,6 +5,7 @@ import {
   resolveFilePath,
   fileExists,
 } from "../lib/utils";
+import { Logger } from "../services/logger";
 
 export const readFiles: PipelineStep<PipelineContext> = async (ctx) => {
   const results = await Promise.allSettled(
@@ -16,7 +17,7 @@ export const readFiles: PipelineStep<PipelineContext> = async (ctx) => {
 
       // Check if file exists first
       if (!(await fileExists(resolvedPath))) {
-        console.warn(`File not found, skipping: ${file.path}`);
+        Logger.warn(`File not found, skipping: ${file.path}`);
         return null;
       }
 

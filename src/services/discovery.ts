@@ -7,6 +7,7 @@ import {
   MAX_SEARCH_TIMEOUT,
   MAX_SEARCH_FILES,
 } from "../lib/const";
+import { Logger } from "./logger";
 
 export namespace Discovery {
   const execAsync = promisify(exec);
@@ -73,7 +74,8 @@ export namespace Discovery {
     // Limit results and add timeout to prevent hanging
     const rgCommand = `rg -l ${typePatterns} ${exclusions} --no-ignore-vcs --max-count ${50} "${pattern}" ${projectRoot}`;
 
-    console.log(`Search command: ${rgCommand}`); // Debug: log the actual command
+    Logger.info(`Search: ${pattern}`);
+    Logger.debug(`Search command: ${rgCommand}`);
 
     try {
       // Add 10 second timeout
@@ -103,7 +105,7 @@ export namespace Discovery {
 
       return [...new Set(filterPathsWithinProject(files, [], projectRoot))];
     } catch (error: any) {
-      console.warn(
+      Logger.warn(
         `Search failed for pattern: ${pattern}`,
         error?.message || "Unknown error"
       );

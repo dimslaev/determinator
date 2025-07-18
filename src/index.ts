@@ -11,6 +11,7 @@ import {
   generateAnswer,
 } from "./steps";
 import { needsMoreContext, isAskMode, isEditMode } from "./steps/conditions";
+import { Logger } from "./services/logger";
 
 export async function processRequest(
   userPrompt: string,
@@ -25,9 +26,9 @@ export async function processRequest(
     createdFiles: string[];
   };
 }> {
-  console.log(`Processing: "${userPrompt}"`);
-  console.log(`Project root: ${projectRoot}`);
-  console.log(`Initial files: ${initialFilePaths.length}`);
+  Logger.info(`Spaider starting ...`);
+  Logger.info(`Project root: ${projectRoot}`);
+  Logger.info(`Initial files: ${initialFilePaths.length}`);
 
   const initialContext: PipelineContext = {
     userPrompt,

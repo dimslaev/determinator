@@ -1,8 +1,9 @@
 import { AI } from "../services/ai";
 import { PipelineStep, PipelineContext } from "../lib/types";
+import { Logger } from "../services/logger";
 
 export const analyzeIntent: PipelineStep<PipelineContext> = async (ctx) => {
-  console.log(
+  Logger.info(
     `Analyzing intent for prompt: "${ctx.userPrompt.slice(0, 50)}..."`
   );
 
@@ -16,8 +17,6 @@ export const analyzeIntent: PipelineStep<PipelineContext> = async (ctx) => {
     ctx.projectTree
   );
 
-  console.log(
-    `✓ Intent analyzed - needsMoreContext: ${ctx.intent.needsMoreContext}`
-  );
+  Logger.info(`✓ Intent analyzed\n`, ctx.intent.description);
   return ctx;
 };

@@ -1,5 +1,6 @@
 import { AI } from "../services/ai";
 import { PipelineStep, PipelineContext } from "../lib/types";
+import { Logger } from "../services/logger";
 
 export const generateAnswer: PipelineStep<PipelineContext> = async (ctx) => {
   if (!ctx.intent) {
@@ -8,6 +9,8 @@ export const generateAnswer: PipelineStep<PipelineContext> = async (ctx) => {
     );
   }
 
+  Logger.info("Generating answer ...");
+
   ctx.answer = await AI.generateAnswer(
     ctx.userPrompt,
     ctx.intent,
@@ -15,7 +18,7 @@ export const generateAnswer: PipelineStep<PipelineContext> = async (ctx) => {
     ctx.projectTree
   );
 
-  console.log(ctx.answer);
+  Logger.info(ctx.answer);
 
   return ctx;
 };

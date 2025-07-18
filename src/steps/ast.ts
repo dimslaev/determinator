@@ -1,8 +1,9 @@
 import { AST } from "../services/ast";
 import { PipelineStep, PipelineContext } from "../lib/types";
+import { Logger } from "../services/logger";
 
 export const parseAST: PipelineStep<PipelineContext> = async (ctx) => {
-  console.log(`Analyzing semantics for ${ctx.files.length} files...`);
+  Logger.debug(`Analyzing semantics for ${ctx.files.length} files...`);
 
   ctx.files = await Promise.all(
     ctx.files.map(async (file) => {
@@ -14,6 +15,6 @@ export const parseAST: PipelineStep<PipelineContext> = async (ctx) => {
     })
   );
 
-  console.log(`✓ Parsed ${ctx.files.length} files`);
+  Logger.debug(`✓ Parsed ${ctx.files.length} files`);
   return ctx;
 };

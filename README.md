@@ -13,7 +13,7 @@ Spaider uses structured outputs and deterministic workflows to ensure consistenc
 
 ## Prerequisites
 
-Before trying spaider, you need to install `rg` (ripgrep) which is used for fast code searching:
+Before trying Spaider, you need to install `rg` (ripgrep) which is used for fast code searching:
 
 ```bash
 # macOS (using Homebrew)
@@ -53,7 +53,37 @@ const processRequest = pipeline<PipelineContext>(
 );
 ```
 
-## Testing
+## CLI
+
+Spaider includes a simple command-line interface:
+
+```bash
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Basic usage with npm script
+npm run cli -- "Add a comment to explain this function" -f src/auth.ts
+
+# Or use the compiled executable directly
+./dist/cli.js --help
+./dist/cli.js "Analyze error handling patterns" -r ./my-project
+
+# View help
+npm run cli -- --help
+```
+
+**CLI Options:**
+
+- `-p, --prompt <text>`: The request/prompt for the AI assistant
+- `-f, --files <files...>`: Initial files to include in the analysis
+- `-r, --root <path>`: Project root directory (default: current directory)
+- `-h, --help`: Show help message
+- `-v, --version`: Show version information
+
+### Testing
 
 The `test-repo` directory contains a sample project that allows to easily test real-world scenarios with actual LLM calls and responses. You can run different scenarios:
 

@@ -13,6 +13,7 @@ import {
 } from "../lib/utils";
 import { ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/completions";
 import { RequestOptions } from "openai/core";
+import { Logger } from "./logger";
 
 dotenv.config();
 
@@ -80,23 +81,23 @@ export namespace AI {
       const parsed = JSON.parse(cleanContent);
       return schema.parse(parsed);
     } catch (error) {
-      console.error("=== JSON PARSING ERROR ===");
-      console.error("Full response content:");
-      console.error(cleanContent);
-      console.error("========================");
-      console.error("Error:", error);
+      Logger.error("=== JSON PARSING ERROR ===");
+      Logger.error("Full response content:");
+      Logger.error(cleanContent);
+      Logger.error("========================");
+      Logger.error("Error:", error);
 
       // If JSON parse fails, try to identify common issues
       if (error instanceof SyntaxError) {
-        console.error("JSON Syntax Error detected. Common issues:");
+        Logger.error("JSON Syntax Error detected. Common issues:");
         if (cleanContent.includes("`")) {
-          console.error("- Contains backticks (`) which are not valid in JSON");
+          Logger.error("- Contains backticks (`) which are not valid in JSON");
         }
         if (cleanContent.includes("\n") && !cleanContent.includes("\\n")) {
-          console.error("- Contains unescaped newlines");
+          Logger.error("- Contains unescaped newlines");
         }
         if (cleanContent.match(/[^\\]"/)) {
-          console.error("- Contains unescaped quotes");
+          Logger.error("- Contains unescaped quotes");
         }
       }
 
@@ -148,8 +149,6 @@ export namespace AI {
     files: FileContext[],
     projectTree: string
   ): Promise<Change[]> {
-    console.log(`Generating changes for intent: ${intent.description}`);
-
     const filePreview = formatFilePreviews(files);
 
     const prompt = `
@@ -211,9 +210,6 @@ export namespace AI {
       "changes"
     );
 
-    console.log(result.changes);
-
-    console.log(`✓ Generated ${result.changes.length} changes`);
     return result.changes;
   }
 
@@ -277,8 +273,6 @@ export namespace AI {
     files: FileContext[],
     projectTree?: string
   ): Promise<string> {
-    console.log(`Generating answer for intent: ${intent.description}`);
-
     const filePreview = formatFilePreviews(files);
     const semanticSummary = formatFileSemantics(files);
 

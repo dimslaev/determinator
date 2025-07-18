@@ -1,10 +1,11 @@
 import { Tree } from "../services/tree";
 import { PipelineStep, PipelineContext } from "../lib/types";
+import { Logger } from "../services/logger";
 
 export const generateProjectTree: PipelineStep<PipelineContext> = async (
   ctx
 ) => {
-  console.log(`Generating project tree for: ${ctx.projectRoot}`);
+  Logger.debug(`Generating project tree for: ${ctx.projectRoot}`);
 
   try {
     const treeOptions = {
@@ -15,14 +16,14 @@ export const generateProjectTree: PipelineStep<PipelineContext> = async (
 
     const tree = await Tree.generateTree(ctx.projectRoot, treeOptions);
 
-    console.log(`Generated tree with ${tree.split("\n").length} lines`);
+    Logger.debug(`Generated tree with ${tree.split("\n").length} lines`);
 
     return {
       ...ctx,
       projectTree: tree,
     };
   } catch (error) {
-    console.error("Error generating project tree:", error);
+    Logger.error("Error generating project tree:", error);
     // Continue without tree if generation fails
     return {
       ...ctx,
