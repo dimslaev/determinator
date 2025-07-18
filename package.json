@@ -1,13 +1,30 @@
 {
-  "name": "Spaider",
+  "name": "spaider",
   "version": "1.0.0",
-  "description": "Deterministic-first ai code assistant",
+  "description": "Deterministic-first AI code assistant that crawls your codebase to implement changes using open source LLMs",
   "main": "dist/index.js",
   "bin": {
     "spaider": "dist/cli.js"
   },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dimslaev/spaider.git"
+  },
+  "homepage": "https://github.com/dimslaev/spaider#readme",
+  "bugs": {
+    "url": "https://github.com/dimslaev/spaider/issues"
+  },
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "cli": "NODE_ENV=production ts-node src/cli.ts",
     "test-a": "NODE_ENV=development ts-node scripts/test-a.ts",
     "test-b": "NODE_ENV=development ts-node scripts/test-b.ts",
@@ -32,7 +49,15 @@
     "ai",
     "code-assistant",
     "ast",
-    "typescript"
+    "typescript",
+    "cli",
+    "code-analysis",
+    "llm",
+    "open-source",
+    "code-modification",
+    "automated-coding",
+    "deterministic",
+    "pipeline"
   ],
   "author": "Dimitar Slaev <dimslaev@gmail.com>",
   "license": "MIT"

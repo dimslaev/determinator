@@ -53,26 +53,46 @@ const processRequest = pipeline<PipelineContext>(
 );
 ```
 
-## CLI
-
-Spaider includes a simple command-line interface:
+## Installation
 
 ```bash
-# Install dependencies
-npm install
+# Install globally
+npm install -g spaider
 
-# Build the project
-npm run build
+# Or use with npx (no installation required)
+npx spaider --help
+```
 
-# Basic usage with npm script
-npm run cli -- "Add a comment to explain this function" -f src/auth.ts
+## CLI Usage
 
-# Or use the compiled executable directly
-./dist/cli.js --help
-./dist/cli.js "Analyze error handling patterns" -r ./my-project
+```bash
+# Using global installation
+spaider "Add a comment to explain this function" -f src/auth.ts
+
+# Using npx (recommended)
+npx spaider "Add a comment to explain this function" -f src/auth.ts
+npx spaider "Analyze error handling patterns" -r ./my-project
 
 # View help
-npm run cli -- --help
+npx spaider --help
+
+# View version
+npx spaider --version
+```
+
+## Development
+
+If you're contributing to Spaider:
+
+```bash
+# Clone and setup
+git clone https://github.com/dimslaev/spaider.git
+cd spaider
+npm install
+npm run build
+
+# Run locally
+npm run cli -- "your prompt" -f file.ts
 ```
 
 **CLI Options:**
