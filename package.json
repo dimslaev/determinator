@@ -1,6 +1,6 @@
 {
   "name": "spaider",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Deterministic-first AI code assistant that crawls your codebase to implement changes using open source LLMs",
   "main": "dist/index.js",
   "bin": {
@@ -34,7 +34,6 @@
   "dependencies": {
     "dedent": "^1.6.0",
     "diff": "^5.1.0",
-    "dotenv": "^17.0.1",
     "glob": "^10.3.0",
     "openai": "^4.90.0",
     "ts-morph": "^26.0.0",
