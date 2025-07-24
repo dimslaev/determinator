@@ -1,6 +1,5 @@
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
-import * as dotenv from "dotenv";
 import { z } from "zod";
 import { Intent, FileContext, Change, Changes } from "../lib/types";
 import { IntentSchema, ChangesSchema } from "../lib/schemas";
@@ -14,8 +13,6 @@ import {
 import { ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/completions";
 import { RequestOptions } from "openai/core";
 import { Logger } from "./logger";
-
-dotenv.config();
 
 export namespace AI {
   const openai = new OpenAI({

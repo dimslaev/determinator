@@ -19,17 +19,19 @@ brew install ripgrep
 # Go to your project
 cd project/
 
-# Create env file
-touch .env
-echo "OPENAI_BASE_URL=https://api.infomaniak.com/1/ai" >> .env
-echo "OPENAI_MODEL=llama3" >> .env
-echo "OPENAI_API_KEY=your_api_key_here" >> .env
+# Add env vars
+export OPENAI_BASE_URL=https://api.infomaniak.com/1/ai
+export OPENAI_MODEL=llama3
+export OPENAI_API_KEY=your_api_key
 
-# Use npx to run spaider
-npx spaider "What is this project about?"
+# Install globally
+npm i -g spaider@latest
 
-# Or adjust prompt and ask for modification
-npx spaider "Add a comment to explain this function" -f src/auth.ts
+# Ask question
+spaider -p "What is this project about?"
+
+# Ask for modification
+spaider -p "Add a comment to explain this function" -f src/auth.ts
 ```
 
 **CLI Options:**

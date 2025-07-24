@@ -41,7 +41,7 @@ export const applyChanges: PipelineStep<PipelineContext> = async (ctx) => {
       let fileContent = "";
 
       if (changes[0].operation !== "new_file") {
-        Logger.info("Creating file", filePath);
+        Logger.info("Updating file", filePath);
 
         fileContent = await readFile(
           resolveFilePath(filePath, ctx.projectRoot)
@@ -51,7 +51,7 @@ export const applyChanges: PipelineStep<PipelineContext> = async (ctx) => {
           throw new Error(`Could not read file ${filePath}`);
         }
       } else {
-        Logger.info("Modifying file", filePath);
+        Logger.info("Creating file", filePath);
       }
 
       const newFileContent = await AI.applyFileChanges(changes, fileContent);

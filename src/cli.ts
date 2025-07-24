@@ -3,7 +3,6 @@
 import { processRequest } from "./index";
 import * as path from "path";
 import { readFile } from "./lib/utils";
-import * as dotenv from "dotenv";
 
 interface CLIOptions {
   prompt: string;
@@ -82,20 +81,14 @@ Options:
   -v, --version           Show version information
 
 Examples:
-  spaider "Add a comment to explain this function" -f src/auth.ts
+  spaider -p "Add a comment to explain this function" -f src/auth.ts
   spaider -p "Add role-based authorization" -f src/auth.ts src/middleware/
-  spaider "Analyze error handling patterns" -r ./my-project
+  spaider -p "Analyze error handling patterns" -r ./my-project
 
 Environment Variables:
-  OPENAI_API_KEY      Required. Your OpenAI API key
-  OPENAI_MODEL        Optional. Model to use (default: gpt-4.1)
-  OPENAI_BASE_URL     Optional. Custom OpenAI API base URL
-
-Setup:
-  Create a .env file in your project root:
-    OPENAI_API_KEY=your_api_key_here
-    OPENAI_MODEL=llama3
-    OPENAI_BASE_URL=https://api.infomaniak.com/1/ai
+  export OPENAI_API_KEY=...    Required. Your OpenAI API key
+  export OPENAI_MODEL=...      Optional. Model to use (default: gpt-4.1)
+  export OPENAI_BASE_URL=...   Optional. Custom OpenAI API base URL
 
 Note:
   - If no files are specified, the assistant will discover relevant files automatically
@@ -127,12 +120,6 @@ async function main() {
     await showVersion();
     process.exit(0);
   }
-
-  // Load environment variables from the user's project directory
-  dotenv.config({ path: path.join(options.projectRoot, ".env") });
-
-  // Also try loading from current directory as fallback
-  dotenv.config();
 
   if (!options.prompt) {
     console.error("Error: Please provide a prompt.");
