@@ -151,7 +151,7 @@ Based on this information, determine:
     _userPrompt: string,
     intent: Intent,
     files: FileContext[],
-    _projectTree: string
+    _projectTree?: string
   ): Promise<Change[]> {
     const filePreview = formatFilePreviews(files);
 
