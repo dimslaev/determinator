@@ -14,6 +14,9 @@ import { ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/co
 import { RequestOptions } from "openai/core";
 import { Logger } from "./logger";
 
+const DEFAULT_SYSTEM_ROLE =
+  "You are an AI assistant specialized in software development and code generation.";
+
 export namespace AI {
   const openai = new OpenAI({
     baseURL: process.env.OPENAI_BASE_URL || "",
@@ -44,27 +47,35 @@ export namespace AI {
         messages,
         ...rest,
       },
-      options
+      {
+        maxRetries: 2,
+        timeout: 30_000,
+        ...options,
+      }
     );
 
     return response;
   }
 
-  export async function completeStructured<T>(
-    prompt: string,
-    schema: z.Schema,
-    name: string
-  ): Promise<T> {
+  export async function completeStructured<T>(params: {
+    role?: string;
+    user: string;
+    schema: z.Schema;
+    name: string;
+  }): Promise<T> {
     const messages = [
       system(
-        "You must respond with valid JSON that matches the provided schema. Do not include any text outside the JSON response. Do not wrap the JSON in markdown code blocks or use ``` formatting."
+        `${params.role || DEFAULT_SYSTEM_ROLE}
+You must respond with valid JSON that matches the provided schema. 
+Do not include any text outside the JSON response. 
+Do not wrap the JSON in markdown code blocks or use \`\`\` formatting.`
       ),
-      user(prompt),
+      user(params.user),
     ];
 
     const response = await complete({
       messages,
-      response_format: zodResponseFormat(schema, name),
+      response_format: zodResponseFormat(params.schema, params.name),
     });
 
     const content = response.choices[0].message.content!;
@@ -76,7 +87,7 @@ export namespace AI {
 
     try {
       const parsed = JSON.parse(cleanContent);
-      return schema.parse(parsed);
+      return params.schema.parse(parsed);
     } catch (error) {
       Logger.error("=== JSON PARSING ERROR ===");
       Logger.error("Full response content:");
@@ -105,66 +116,47 @@ export namespace AI {
   export async function analyzeIntent(
     userPrompt: string,
     files: FileContext[],
-    projectTree: string
+    _projectTree: string
   ): Promise<Intent> {
     const filePreview = formatFilePreviews(files);
     const semanticSummary = formatFileSemantics(files);
 
     const prompt = `
-      Analyze this code modification request to understand the intent and scope.
+Analyze this code related request to understand the user intent.
 
-      User Request: ${userPrompt}
+User Request: ${userPrompt}
 
-      Files provided:
-      ${filePreview}
+Files provided:
+${filePreview}
 
-      Semantic Analysis:
-      ${semanticSummary}
+Code Symbols:
+${semanticSummary}
 
-      Project tree: 
-      ${projectTree}
-
-      Based on this information, determine:
-      1. What is the scope of the request [current_file, project_wide, debugging, testing, general]
-      2. What mode - whether the user is requesting information (ask) or wants to make code changes (edit)
-      3. A clear description of what needs to be done (be specific about the scope and impact)
-      4. Whether you need more context to understand the request fully - set needsMoreContext to true if additional files or information are needed
-      5. List of specific file paths that are relevant to this intent (filePaths)
-      6. Search terms that could help discover relevant code or files (searchTerms)
-      
-      Focus on understanding the core intent rather than implementation details.
-      If the request is ambiguous, ask the user for more information.
-      Generate only precise, existing terms that would actually appear in the source code.
+Based on this information, determine:
+1. Should files be changed to fulfill the user's request? Set editMode to true if the user is asking for any code be created or modified. Set editMode to false if the user is only asking for information, explanation, or code review. If the request is ambiguous, prefer false unless there is a clear instruction to change files.
+2. A clear description of what needs to be done (be specific about the scope and impact)
+3. Whether additional context is needed to proceed - set needsMoreContext to true if additional files or information are needed
+4. List of file paths relevant to this intent (filePaths)
+5. List of relevant identifiers (searchTerms) EXCLUSIVELY from the "Code Symbols" above.
     `;
 
-    return await completeStructured<Intent>(prompt, IntentSchema, "intent");
+    return await completeStructured<Intent>({
+      user: prompt,
+      schema: IntentSchema,
+      name: "intent",
+    });
   }
 
   export async function generateChanges(
-    userPrompt: string,
+    _userPrompt: string,
     intent: Intent,
     files: FileContext[],
-    projectTree: string
+    _projectTree: string
   ): Promise<Change[]> {
     const filePreview = formatFilePreviews(files);
 
     const prompt = `
-      You are a senior software engineer generating precise code changes. Generate high-quality, production-ready code changes to implement the following request:
-
-      User Request: ${userPrompt}
-      
-      Intent Analysis:
-      - Scope: ${intent.scope}
-      - Description: ${intent.description}
-
-      Project Tree: 
-      ${projectTree}
-
-      Code Quality Requirements:
-      - Follow the existing file patterns and conventions
-      - Maintain consistent indentation and formatting
-      - Place utility functions and constants at appropriate scope levels
-      - Ensure all variables are properly scoped
+      ${intent.description}
 
       Files provided:
       ${filePreview}
@@ -201,11 +193,12 @@ export namespace AI {
       }
     `;
 
-    const result = await completeStructured<Changes>(
-      prompt,
-      ChangesSchema,
-      "changes"
-    );
+    const result = await completeStructured<Changes>({
+      role: "You are a senior software engineer generating precise code changes. Generate high-quality, production-ready code changes to implement the following request",
+      user: prompt,
+      schema: ChangesSchema,
+      name: "changes",
+    });
 
     return result.changes;
   }
@@ -252,7 +245,8 @@ export namespace AI {
     const response = await complete({
       messages: [
         system(
-          "You are a code rewriting assistant. Return only the complete rewritten file content without any additional formatting or explanation."
+          `${DEFAULT_SYSTEM_ROLE}
+Return only the complete rewritten file content without any additional formatting or explanation.`
         ),
         user(prompt),
       ],
@@ -265,40 +259,26 @@ export namespace AI {
   }
 
   export async function generateAnswer(
-    userPrompt: string,
+    _userPrompt: string,
     intent: Intent,
     files: FileContext[],
-    projectTree?: string
+    _projectTree?: string
   ): Promise<string> {
     const filePreview = formatFilePreviews(files);
-    const semanticSummary = formatFileSemantics(files);
 
     const prompt = `
-      User Question: ${userPrompt}
-      
-      Intent Analysis:
-      - Scope: ${intent.scope}
-      - Description: ${intent.description}
+${intent.description}
 
-      ${projectTree ? `Project Structure:\n${projectTree}` : ""}
-
-      Files analyzed:
-      ${filePreview}
-
-      Semantic Analysis:
-      ${semanticSummary}
-      
-      Based on this codebase analysis, provide a comprehensive, accurate answer to the user's question. 
-      Include specific code examples, file references, and explanations where relevant.
-      If you cannot find the requested information in the provided files, clearly state what's missing.
-      Focus on being helpful and precise while avoiding speculation about code not shown.
+Files analyzed:
+${filePreview}
     `;
 
     const response = await complete({
       messages: [
-        system(
-          "You are a helpful software engineering assistant. Provide clear, accurate, and detailed answers based on the code analysis provided."
-        ),
+        system(`${DEFAULT_SYSTEM_ROLE}
+For code-related prompts, prioritize code output with minimal explanation.
+For refactoring requests, provide the refactored code and a very short summary of changes.
+Always deliver clear, concise and efficient answers.`),
         user(prompt),
       ],
     });
