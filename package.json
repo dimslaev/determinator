@@ -1,6 +1,6 @@
 {
   "name": "spaider",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Deterministic-first AI code assistant that crawls your codebase to implement changes using open source LLMs",
   "main": "dist/index.js",
   "bin": {

@@ -116,7 +116,7 @@ Do not wrap the JSON in markdown code blocks or use \`\`\` formatting.`
   export async function analyzeIntent(
     userPrompt: string,
     files: FileContext[],
-    _projectTree: string
+    _projectTree?: string
   ): Promise<Intent> {
     const filePreview = formatFilePreviews(files);
     const semanticSummary = formatFileSemantics(files);

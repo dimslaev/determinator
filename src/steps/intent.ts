@@ -7,10 +7,6 @@ export const analyzeIntent: PipelineStep<PipelineContext> = async (ctx) => {
     `Analyzing intent for prompt: "${ctx.userPrompt.slice(0, 50)}..."`
   );
 
-  if (!ctx.projectTree) {
-    throw new Error("Missing project tree");
-  }
-
   ctx.intent = await AI.analyzeIntent(
     ctx.userPrompt,
     ctx.files,
