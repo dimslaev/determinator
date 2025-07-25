@@ -13,12 +13,8 @@ async function main() {
     (result) => {
       if (!result.result) return;
       result.assert(
-        result.result.intent.mode === "edit",
+        result.result.intent.editMode === true,
         Assertions.isTrue("Should be in edit mode")
-      );
-      result.assert(
-        result.result.intent.scope,
-        Assertions.scopeIs("project_wide")
       );
       result.assert(
         result.result.result.createdFiles.length,

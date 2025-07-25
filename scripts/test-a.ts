@@ -11,15 +11,8 @@ async function main() {
     (result) => {
       if (!result.result) return;
       result.assert(
-        result.result.intent.mode === "edit",
+        result.result.intent.editMode === true,
         Assertions.isTrue("Should be in edit mode")
-      );
-      result.assert(
-        result.result.intent.scope,
-        Assertions.scopeIs(
-          "current_file",
-          `Appropriate scope should be "current_file"`
-        )
       );
       result.assert(result.result.result.modifiedFiles.length, (v) => v > 0);
     }

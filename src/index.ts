@@ -1,7 +1,6 @@
 import { pipeline } from "./lib/pipeline";
 import { PipelineContext, Intent } from "./lib/types";
 import {
-  generateProjectTree,
   readFiles,
   parseAST,
   analyzeIntent,
@@ -35,8 +34,7 @@ export async function processRequest(
     files: initialFilePaths.map((path) => ({ path })),
     projectRoot,
     intent: {
-      scope: "general",
-      mode: "ask",
+      editMode: false,
       description: "",
       needsMoreContext: false,
       filePaths: [],
@@ -51,7 +49,6 @@ export async function processRequest(
   };
 
   const processRequest = pipeline<PipelineContext>(
-    generateProjectTree,
     readFiles,
     parseAST,
     analyzeIntent,

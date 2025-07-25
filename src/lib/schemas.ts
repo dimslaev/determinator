@@ -1,14 +1,11 @@
 import { z } from "zod";
 
 export const IntentSchema = z.object({
-  scope: z
-    .enum(["current_file", "project_wide", "debugging", "testing", "general"])
-    .describe("The scope of the intended operation or analysis"),
-
-  mode: z
-    .enum(["ask", "edit"])
-    .describe("Whether the user is asking a question or wants to modify files"),
-
+  editMode: z
+    .boolean()
+    .describe(
+      "Set to true if the user's request requires making changes to any files. Set to false if the request is only for information, explanation, or code review."
+    ),
   description: z
     .string()
     .min(10, "Description must be at least 10 characters")
@@ -17,7 +14,7 @@ export const IntentSchema = z.object({
 
   needsMoreContext: z
     .boolean()
-    .describe("Whether additional context or information is needed to proceed"),
+    .describe("Whether additional context is needed to proceed"),
 
   filePaths: z
     .array(z.string())
@@ -25,9 +22,7 @@ export const IntentSchema = z.object({
 
   searchTerms: z
     .array(z.string())
-    .describe(
-      "Hints or clues that might help in discovering relevant code or files"
-    ),
+    .describe("Code symbols that could help discover relevant code or files"),
 });
 
 export const ChangeSchema = z.object({

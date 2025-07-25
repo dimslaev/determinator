@@ -11,7 +11,7 @@ async function main() {
     (result) => {
       if (!result.result) return;
       result.assert(
-        result.result.intent.mode === "edit",
+        result.result.intent.editMode === true,
         Assertions.isTrue("Should be in edit mode")
       );
       result.assert(
@@ -29,7 +29,7 @@ async function main() {
     (result) => {
       if (!result.result) return;
       result.assert(
-        result.result.intent.mode === "edit",
+        result.result.intent.editMode === true,
         Assertions.isTrue("Should be in edit mode")
       );
       result.assert(
@@ -51,7 +51,7 @@ async function main() {
     (result) => {
       if (!result.result) return;
       result.assert(
-        result.result.intent.mode === "edit",
+        result.result.intent.editMode === true,
         Assertions.isTrue("Should be in edit mode")
       );
       const needsContext = result.result.intent.needsMoreContext;
@@ -72,14 +72,8 @@ async function main() {
     "test-repo",
     (result) => {
       if (!result.result) return;
-      const scope = result.result.intent.scope;
       result.assert(
-        scope === "project_wide" || scope === "debugging",
-        (v) => v === true,
-        'Scope should be "project_wide" or "debugging"'
-      );
-      result.assert(
-        result.result.intent.mode === "edit",
+        result.result.intent.editMode === true,
         Assertions.isTrue("Should be in edit mode")
       );
     }
