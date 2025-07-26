@@ -11,12 +11,7 @@ export const generateAnswer: PipelineStep<PipelineContext> = async (ctx) => {
 
   Logger.info("Generating answer ...");
 
-  ctx.answer = await AI.generateAnswer(
-    ctx.userPrompt,
-    ctx.intent,
-    ctx.files,
-    ctx.projectTree
-  );
+  ctx.answer = await AI.generateAnswer(ctx.intent, ctx.files);
 
   Logger.info(ctx.answer);
 

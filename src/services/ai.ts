@@ -1,8 +1,18 @@
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
-import { Intent, FileContext, Change, Changes } from "../lib/types";
-import { IntentSchema, ChangesSchema } from "../lib/schemas";
+import {
+  Intent,
+  FileContext,
+  Change,
+  Changes,
+  RelevantFilePaths,
+} from "../lib/types";
+import {
+  IntentSchema,
+  ChangesSchema,
+  RelevantFilePathsSchema,
+} from "../lib/schemas";
 import {
   system,
   user,
@@ -137,21 +147,29 @@ Based on this information, determine:
 2. A clear description of what needs to be done (be specific about the scope and impact)
 3. Whether additional context is needed to proceed - set needsMoreContext to true if additional files or information are needed
 4. List of file paths relevant to this intent (filePaths)
-5. List of relevant identifiers (searchTerms) EXCLUSIVELY from the "Code Symbols" above.
+5. List of the most relevant search terms (searchTerms) from the "Code Symbols" section. Include EXLUSIVELY only terms which are relevant to the "User Request", sorted in terms of relevance in descending order.
     `;
 
-    return await completeStructured<Intent>({
+    Logger.info("prompt");
+    Logger.info("");
+    Logger.info(prompt);
+
+    const res = await completeStructured<Intent>({
       user: prompt,
       schema: IntentSchema,
       name: "intent",
     });
+
+    Logger.info("searchTerms");
+    Logger.info("");
+    Logger.info(res.searchTerms.join(", "));
+
+    return res;
   }
 
   export async function generateChanges(
-    _userPrompt: string,
     intent: Intent,
-    files: FileContext[],
-    _projectTree?: string
+    files: FileContext[]
   ): Promise<Change[]> {
     const filePreview = formatFilePreviews(files);
 
@@ -259,10 +277,8 @@ Return only the complete rewritten file content without any additional formattin
   }
 
   export async function generateAnswer(
-    _userPrompt: string,
     intent: Intent,
-    files: FileContext[],
-    _projectTree?: string
+    files: FileContext[]
   ): Promise<string> {
     const filePreview = formatFilePreviews(files);
 
@@ -284,5 +300,33 @@ Always deliver clear, concise and efficient answers.`),
     });
 
     return response.choices[0].message.content!.trim();
+  }
+
+  export async function filterRelevantFilePaths(
+    intent: Intent,
+    discoveredFilePaths: string[]
+  ): Promise<RelevantFilePaths["filePaths"]> {
+    if (discoveredFilePaths.length === 0) {
+      return [];
+    }
+
+    const prompt = `
+Based on the user intent, determine which of these file paths might be relevant to the task.
+
+Intent: ${intent.description}
+
+File paths (need to filter for relevance):
+${discoveredFilePaths}
+
+Return a list of file paths sorted by relevance to the intent in descending order. Exlude paths that are unlikely to contain information that can help achieve the task.
+`;
+
+    const response = await completeStructured<RelevantFilePaths>({
+      user: prompt,
+      schema: RelevantFilePathsSchema,
+      name: "relevant-file-paths",
+    });
+
+    return response.filePaths;
   }
 }

@@ -61,3 +61,9 @@ export const ChangesSchema = z.object({
     .array(ChangeSchema)
     .describe("List of all file changes to be made using hybrid approach"),
 });
+
+export const RelevantFilePathsSchema = z.object({
+  filePaths: z
+    .array(z.string())
+    .describe("List of file paths relevant to the user intent"),
+});

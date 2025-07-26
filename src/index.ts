@@ -34,6 +34,7 @@ export async function processRequest(
 
   const initialContext: PipelineContext = {
     userPrompt,
+    initialFilePaths,
     files: initialFilePaths.map((path) => ({ path })),
     projectRoot,
     intent: {

@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { IntentSchema, ChangeSchema, ChangesSchema } from "./schemas";
+import {
+  IntentSchema,
+  ChangeSchema,
+  ChangesSchema,
+  RelevantFilePathsSchema,
+} from "./schemas";
 
 export interface FileContext {
   path: string;
@@ -19,9 +24,11 @@ export interface SemanticInfo {
 export type Intent = z.infer<typeof IntentSchema>;
 export type Change = z.infer<typeof ChangeSchema>;
 export type Changes = z.infer<typeof ChangesSchema>;
+export type RelevantFilePaths = z.infer<typeof RelevantFilePathsSchema>;
 
 export interface PipelineContext {
   userPrompt: string;
+  initialFilePaths: string[];
   files: FileContext[];
   projectRoot: string;
   projectTree?: string;

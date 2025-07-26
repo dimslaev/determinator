@@ -11,12 +11,7 @@ export const generateChanges: PipelineStep<PipelineContext> = async (ctx) => {
 
   Logger.info("Generating changes ...");
 
-  ctx.changes = await AI.generateChanges(
-    ctx.userPrompt,
-    ctx.intent,
-    ctx.files,
-    ctx.projectTree
-  );
+  ctx.changes = await AI.generateChanges(ctx.intent, ctx.files);
 
   Logger.debug(`✓ Generated ${ctx.changes.length} changes`);
   return ctx;

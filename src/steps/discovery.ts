@@ -1,3 +1,4 @@
+import { AI } from "../services/ai";
 import { Discovery } from "../services/discovery";
 import { PipelineStep, PipelineContext } from "../lib/types";
 import { Logger } from "../services/logger";
@@ -42,13 +43,17 @@ export const discoverFiles: PipelineStep<PipelineContext> = async (ctx) => {
     discoveredPaths.push(...paths);
   }
 
-  // Remove duplicates and paths that already exist in ctx.files
   discoveredPaths = [...new Set(discoveredPaths)].filter(
     (path) => !ctx.files.some((file) => file.path === path)
   );
 
-  ctx.files = [...ctx.files, ...discoveredPaths.map((path) => ({ path }))];
+  const relevantFilePaths = await AI.filterRelevantFilePaths(
+    ctx.intent,
+    discoveredPaths
+  );
 
-  console.log(`✓ Discovered new files \n${discoveredPaths.join("\n")}`);
+  ctx.files = [...ctx.files, ...relevantFilePaths.map((path) => ({ path }))];
+
+  console.log(`✓ Discovered new files \n${relevantFilePaths.join("\n")}`);
   return ctx;
 };
