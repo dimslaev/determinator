@@ -1,6 +1,6 @@
 # Source files
 src/
-scripts/
+tests/
 test-repo/
 
 # Development files

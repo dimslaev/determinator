@@ -6,4 +6,5 @@ export { discoverFiles } from "./discovery";
 export { needsMoreContext } from "./conditions";
 export { generateChanges } from "./changes";
 export { applyChanges } from "./apply";
+export { writeChanges } from "./write";
 export { generateAnswer } from "./answer";

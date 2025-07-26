@@ -60,13 +60,19 @@ export async function runTest(
   prompt: string,
   files: string[],
   projectRoot: string,
-  assertions: (result: TestResult) => void
+  assertions: (result: TestResult) => void,
+  options: { writeOnly?: boolean } = {}
 ): Promise<TestResult> {
   console.log(`\n🧪 Running Test: ${testName}`);
   console.log("-----------------------------------------");
   let result: TestResult;
   try {
-    const processResult = await processRequest(prompt, files, projectRoot);
+    const processResult = await processRequest(
+      prompt,
+      files,
+      projectRoot,
+      options.writeOnly
+    );
     result = new TestResult(testName, processResult);
     if (result.result) {
       console.log(`  ✓ Intent: ${result.result.intent.description}`);
@@ -94,14 +100,16 @@ export function createTestSuite(suiteName: string) {
       prompt: string,
       files: string[],
       projectRoot: string,
-      assertions: (result: TestResult) => void
+      assertions: (result: TestResult) => void,
+      options: { writeOnly?: boolean } = {}
     ) => {
       const result = await runTest(
         testName,
         prompt,
         files,
         projectRoot,
-        assertions
+        assertions,
+        options
       );
       testResults.push(result);
     },
