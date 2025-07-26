@@ -10,6 +10,7 @@ interface CLIOptions {
   projectRoot: string;
   help: boolean;
   version: boolean;
+  writeOnly: boolean;
 }
 
 function parseArgs(): CLIOptions {
@@ -20,6 +21,7 @@ function parseArgs(): CLIOptions {
     projectRoot: process.cwd(),
     help: false,
     version: false,
+    writeOnly: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -53,6 +55,10 @@ function parseArgs(): CLIOptions {
           options.projectRoot = path.resolve(args[++i]);
         }
         break;
+      case "-w":
+      case "--write-only":
+        options.writeOnly = true;
+        break;
       default:
         // If no flags are provided, treat the first argument as prompt
         if (!options.prompt && !arg.startsWith("-")) {
@@ -77,6 +83,7 @@ Options:
   -p, --prompt <text>     The request/prompt for the AI assistant
   -f, --files <files...>  Initial files to include in the analysis
   -r, --root <path>       Project root directory (default: current directory)
+  -w, --write-only        Write changes to a file instead of applying them directly
   -h, --help              Show this help message
   -v, --version           Show version information
 
@@ -84,6 +91,7 @@ Examples:
   spaider -p "Add a comment to explain this function" -f src/auth.ts
   spaider -p "Add role-based authorization" -f src/auth.ts src/middleware/
   spaider -p "Analyze error handling patterns" -r ./my-project
+  spaider -w -p "Add error handling" -f src/auth.ts
 
 Environment Variables:
   export OPENAI_API_KEY=...    Required. Your OpenAI API key
@@ -94,6 +102,7 @@ Note:
   - If no files are specified, the assistant will discover relevant files automatically
   - The assistant works best with TypeScript/JavaScript projects
   - Make sure you have 'rg' (ripgrep) installed for file discovery
+  - Use --write-only to generate a CHANGES.md file for manual review instead of applying changes directly
 `);
 }
 
@@ -131,22 +140,38 @@ async function main() {
     const result = await processRequest(
       options.prompt,
       options.files,
-      options.projectRoot
+      options.projectRoot,
+      options.writeOnly
     );
 
-    if (result.result.modifiedFiles.length > 0) {
-      console.log(`\nModified files:`);
-      result.result.modifiedFiles.forEach((file) => console.log(`  - ${file}`));
-    }
+    if (options.writeOnly) {
+      if (result.result.createdFiles.includes("CHANGES.md")) {
+        console.log(`\n✅ Changes written to CHANGES.md`);
+        console.log(`📝 Review the file and apply changes manually`);
+      } else {
+        console.log(`\nℹ️  No changes to write (no modifications needed)`);
+      }
+    } else {
+      if (result.result.modifiedFiles.length > 0) {
+        console.log(`\nModified files:`);
+        result.result.modifiedFiles.forEach((file) =>
+          console.log(`  - ${file}`)
+        );
+      }
 
-    if (result.result.createdFiles.length > 0) {
-      console.log(`\nCreated files:`);
-      result.result.createdFiles.forEach((file) => console.log(`  - ${file}`));
-    }
+      if (result.result.createdFiles.length > 0) {
+        console.log(`\nCreated files:`);
+        result.result.createdFiles.forEach((file) =>
+          console.log(`  - ${file}`)
+        );
+      }
 
-    if (result.result.deletedFiles.length > 0) {
-      console.log(`\nDeleted files:`);
-      result.result.deletedFiles.forEach((file) => console.log(`  - ${file}`));
+      if (result.result.deletedFiles.length > 0) {
+        console.log(`\nDeleted files:`);
+        result.result.deletedFiles.forEach((file) =>
+          console.log(`  - ${file}`)
+        );
+      }
     }
   } catch (error) {
     console.error(

@@ -161,6 +161,78 @@ export function formatChanges(changes: Change[]): string {
     .join("\n\n");
 }
 
+export function formatWriteChanges(
+  filePath: string,
+  fileChanges: Change[]
+): string {
+  const output = [`## File: ${filePath}", "`];
+
+  for (const change of fileChanges) {
+    // Add operation description
+    let description = "";
+    switch (change.operation) {
+      case "new_file":
+        description = `Create new file: ${
+          change.modificationDescription || "New file creation"
+        }`;
+        break;
+      case "delete_file":
+        description = `Delete file: ${
+          change.modificationDescription || "Remove this file"
+        }`;
+        break;
+      case "modify_file":
+        description = `${change.modificationType}: ${
+          change.modificationDescription || "Modify existing file"
+        }`;
+        break;
+    }
+
+    output.push(`### ${description}\n`);
+
+    // Add old code block if it exists
+    if (change.oldCodeBlock && change.operation === "modify_file") {
+      output.push("**Old Code:**\n```");
+      output.push(change.oldCodeBlock);
+      output.push("```\n");
+    }
+
+    // Add new code block if it exists
+    if (change.newCodeBlock && change.operation !== "delete_file") {
+      output.push("**New Code:**\n```");
+      output.push(change.newCodeBlock);
+      output.push("```\n");
+    }
+
+    // Add special instructions for different operations
+    if (change.operation === "delete_file") {
+      output.push("**Action:** Delete this file completely\n");
+    } else if (change.operation === "new_file") {
+      output.push("**Action:** Create this file with the new code above\n");
+    } else {
+      switch (change.modificationType) {
+        case "replace_block":
+          output.push(
+            "**Action:** Replace the old code block with the new code block above\n"
+          );
+          break;
+        case "add_block":
+          output.push(
+            "**Action:** Add the new code block to the appropriate location in the file\n"
+          );
+          break;
+        case "remove_block":
+          output.push("**Action:** Remove the old code block from the file\n");
+          break;
+      }
+    }
+
+    output.push("---\n");
+  }
+
+  return output.join("\n");
+}
+
 // File Path Utilities
 export function resolveFilePath(filePath: string, projectRoot: string): string {
   if (path.isAbsolute(filePath)) {

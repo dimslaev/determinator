@@ -1,6 +1,6 @@
 {
   "name": "spaider",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Deterministic-first AI code assistant that crawls your codebase to implement changes using open source LLMs",
   "main": "dist/index.js",
   "bin": {
@@ -27,9 +27,9 @@
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "cli": "NODE_ENV=production ts-node src/cli.ts",
-    "test-a": "NODE_ENV=development ts-node scripts/test-a.ts",
-    "test-b": "NODE_ENV=development ts-node scripts/test-b.ts",
-    "test-c": "NODE_ENV=development ts-node scripts/test-c.ts"
+    "test-a": "NODE_ENV=development ts-node tests/test-a.ts",
+    "test-b": "NODE_ENV=development ts-node tests/test-b.ts",
+    "test-c": "NODE_ENV=development ts-node tests/test-c.ts"
   },
   "dependencies": {
     "compromise": "^14.14.4",
