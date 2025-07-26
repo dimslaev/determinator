@@ -57,7 +57,7 @@ const processRequest = pipeline<PipelineContext>(
     steps: [discoverFiles, readFiles, parseAST],
   },
   {
-    when: !isEditMode,
+    when: isAskMode,
     steps: [generateAnswer],
   },
   {

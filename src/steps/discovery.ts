@@ -26,16 +26,15 @@ export const discoverFiles: PipelineStep<PipelineContext> = async (ctx) => {
     discoveredPaths.push(...paths);
   }
 
-  // Discover from search terms
-  if (ctx.intent.searchTerms.length > 0) {
+  const searchTerms = [...ctx.intent.searchTerms, ctx.intent.description];
+
+  if (searchTerms.length > 0) {
     Logger.debug(
-      `Discovering files based on search terms \n${ctx.intent.searchTerms.join(
-        "\n"
-      )}`
+      `Discovering files based on hints \n${searchTerms.join("\n")}`
     );
 
     const paths = await Discovery.discoverFromSearchTerms(
-      ctx.intent.searchTerms,
+      searchTerms,
       ctx.files.map((f) => f.path),
       ctx.projectRoot
     );
@@ -50,6 +49,6 @@ export const discoverFiles: PipelineStep<PipelineContext> = async (ctx) => {
 
   ctx.files = [...ctx.files, ...discoveredPaths.map((path) => ({ path }))];
 
-  Logger.info(`✓ Discovered new files \n${discoveredPaths.join("\n")}`);
+  console.log(`✓ Discovered new files \n${discoveredPaths.join("\n")}`);
   return ctx;
 };

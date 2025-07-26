@@ -1,10 +1,12 @@
+import nlp from "compromise";
 import * as path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { filterPathsWithinProject, resolveFilePath } from "../lib/utils";
 import {
-  MAX_FILES_PER_TERM,
   MAX_SEARCH_TIMEOUT,
+  MAX_FILES_PER_TERM,
+  MAX_SEARCH_TERMS_PER_HINT,
   MAX_SEARCH_FILES,
 } from "../lib/const";
 import { Logger } from "./logger";
@@ -33,17 +35,102 @@ export namespace Discovery {
   ): Promise<string[]> {
     if (searchTerms.length === 0) return [];
 
+    const extractedTerms = [
+      ...new Set(searchTerms.flatMap((term) => extractSearchTerms(term))),
+    ];
+    if (extractedTerms.length === 0) return [];
+
     try {
-      const candidateFiles = await searchFiles(searchTerms, projectRoot);
+      const candidateFiles = await searchFiles(extractedTerms, projectRoot);
       const filteredFiles = filterPathsWithinProject(
         candidateFiles,
         excludePaths,
         projectRoot
       );
-      return filteredFiles.slice(0, searchTerms.length * MAX_FILES_PER_TERM);
+      return filteredFiles.slice(0, extractedTerms.length * MAX_FILES_PER_TERM);
     } catch {
       return [];
     }
+  }
+
+  function extractSearchTerms(searchTerm: string): string[] {
+    // Use NLP to extract meaningful terms
+    const doc = nlp(searchTerm);
+    const keywords = new Set<string>();
+
+    // Define broad terms to filter out
+    const broadTerms = new Set([
+      "files",
+      "file",
+      "code",
+      "configuration",
+      "setup",
+      "any",
+      "existing",
+      "related",
+      "implementation",
+      "component",
+      "components",
+      "module",
+      "modules",
+      "system",
+      "application",
+      "app",
+      "project",
+      "service",
+      "services",
+      "utils",
+      "utilities",
+      "helper",
+      "helpers",
+      "common",
+      "shared",
+      "general",
+      "basic",
+      "simple",
+      "main",
+      "primary",
+      "secondary",
+    ]);
+
+    // Extract topics, technical terms, and entities
+    doc
+      .topics()
+      .out("array")
+      .forEach((term: string) => {
+        if (!broadTerms.has(term.toLowerCase())) {
+          keywords.add(term);
+        }
+      });
+
+    doc
+      .nouns()
+      .out("array")
+      .forEach((noun: string) => {
+        if (
+          noun.length > 2 &&
+          /^[a-zA-Z][a-zA-Z0-9]*$/.test(noun) &&
+          !broadTerms.has(noun.toLowerCase())
+        ) {
+          keywords.add(noun);
+        }
+      });
+
+    // Extract quoted content (file paths, specific terms)
+    const quotedMatches = searchTerm.match(/'([^']+)'|"([^"]+)"|`([^`]+)`/g);
+    if (quotedMatches) {
+      quotedMatches.forEach((match) => {
+        const cleaned = match.replace(/['"`]/g, "");
+        if (cleaned.length > 2 && !broadTerms.has(cleaned.toLowerCase())) {
+          keywords.add(cleaned);
+        }
+      });
+    }
+
+    // Filter out any remaining broad terms and return
+    return Array.from(keywords)
+      .filter((term) => !broadTerms.has(term.toLowerCase()))
+      .slice(0, MAX_SEARCH_TERMS_PER_HINT);
   }
 
   export async function searchFiles(
