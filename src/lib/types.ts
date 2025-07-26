@@ -11,6 +11,7 @@ export interface FileContext {
   language?: "typescript" | "javascript" | "tsx" | "jsx";
   content?: string;
   ast?: SemanticInfo;
+  extractedContent?: string;
 }
 
 export interface SemanticInfo {

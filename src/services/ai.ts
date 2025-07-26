@@ -171,7 +171,7 @@ Based on this information, determine:
     intent: Intent,
     files: FileContext[]
   ): Promise<Change[]> {
-    const filePreview = formatFilePreviews(files);
+    const filePreview = formatFilePreviews(files, true);
 
     const prompt = `
       ${intent.description}
@@ -280,7 +280,7 @@ Return only the complete rewritten file content without any additional formattin
     intent: Intent,
     files: FileContext[]
   ): Promise<string> {
-    const filePreview = formatFilePreviews(files);
+    const filePreview = formatFilePreviews(files, true);
 
     const prompt = `
 ${intent.description}
@@ -328,5 +328,65 @@ Return a list of file paths sorted by relevance to the intent in descending orde
     });
 
     return response.filePaths;
+  }
+
+  export async function extractRelevantCodeBlocks(
+    intent: Intent,
+    file: FileContext
+  ): Promise<string | null> {
+    if (!file.content) {
+      return null;
+    }
+
+    const prompt = `
+Extract only the most relevant code blocks from this file based on the user's request and intent.
+
+Intent: ${intent.description}
+Search Terms: ${intent.searchTerms.join(", ")}
+
+File: ${file.path}
+Content:
+\`\`\`
+${file.content}
+\`\`\`
+
+Instructions:
+1. Identify code blocks (functions, classes, imports, exports, etc.) that are most relevant to the user's request
+2. Extract only the relevant code blocks, maintaining their original structure and formatting
+3. Include necessary imports and dependencies for the extracted code to be meaningful
+4. If no code is relevant to the request, return null
+5. Return only the extracted code blocks, not the entire file
+6. Preserve the original indentation and formatting
+
+Return the extracted relevant code blocks or null if nothing is relevant.
+`;
+
+    const response = await complete({
+      messages: [
+        system(`${DEFAULT_SYSTEM_ROLE}
+You are a code analysis expert. Extract only the most relevant code blocks from files based on user requests.
+Return only the extracted code blocks without any explanations or markdown formatting.`),
+        user(prompt),
+      ],
+    });
+
+    const extractedContent = response.choices[0].message.content!.trim();
+
+    // Remove any potential markdown code block markers
+    const cleanContent = extractedContent
+      .replace(/^```[\w]*\n?/, "")
+      .replace(/\n?```$/, "")
+      .trim();
+
+    // Return null if the AI indicates no relevant content or if the content is empty
+    if (
+      !cleanContent ||
+      cleanContent.toLowerCase().includes("no relevant") ||
+      cleanContent.toLowerCase().includes("null")
+    ) {
+      return null;
+    }
+
+    return cleanContent;
   }
 }

@@ -102,16 +102,23 @@ export async function loadFileContexts(
   return contexts.filter((c) => c !== null) as FileContext[];
 }
 
-export function formatFilePreview(file: FileContext): string {
-  if (!file.content) {
-    throw new Error("Missing file content");
+export function formatFilePreview(
+  file: FileContext,
+  extracted: boolean = false
+): string {
+  const content = extracted
+    ? file.extractedContent || file.content
+    : file.content;
+
+  if (!content) {
+    throw new Error("Missing file content: " + file.path);
   }
 
-  const lines = file.content.split("\n");
+  const lines = content.split("\n");
   const fileContent =
     lines.length > MAX_FILE_PREVIEW_LINES
       ? lines.slice(0, MAX_FILE_PREVIEW_LINES).join("\n") + "\n...[truncated]"
-      : file.content;
+      : content;
 
   return `${file.path}:\n${fileContent}`;
 }
@@ -127,8 +134,11 @@ export function formatFileSemantic(file: FileContext): string {
     - Classes: ${file.ast.classes.map((c) => c.name).join(", ")}`;
 }
 
-export function formatFilePreviews(files: FileContext[]) {
-  return files.map(formatFilePreview).join("\n\n");
+export function formatFilePreviews(
+  files: FileContext[],
+  extracted: boolean = false
+) {
+  return files.map((file) => formatFilePreview(file, extracted)).join("\n\n");
 }
 
 export function formatFileSemantics(files: FileContext[]) {

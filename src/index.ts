@@ -5,6 +5,7 @@ import {
   parseAST,
   analyzeIntent,
   discoverFiles,
+  // extractRelevantCodeBlocks,
   generateChanges,
   writeChanges,
   applyChanges,
@@ -60,6 +61,7 @@ export async function processRequest(
       when: needsMoreContext,
       steps: [discoverFiles, readFiles, parseAST],
     },
+    // extractRelevantCodeBlocks,
     {
       when: isAskMode,
       steps: [generateAnswer],
