@@ -7,11 +7,14 @@ import {
   Change,
   Changes,
   RelevantFilePaths,
+  ChangeOverview,
+  ChangeOverviews,
 } from "../lib/types";
 import {
   IntentSchema,
   ChangesSchema,
   RelevantFilePathsSchema,
+  ChangeOverviewsSchema,
 } from "../lib/schemas";
 import {
   system,
@@ -165,6 +168,96 @@ Based on this information, determine:
     Logger.info(res.searchTerms.join(", "));
 
     return res;
+  }
+
+  export async function prepareChanges(
+    intent: Intent,
+    files: FileContext[]
+  ): Promise<ChangeOverview[]> {
+    const filePreview = formatFilePreviews(files, true);
+
+    const prompt = `
+${intent.description}
+
+Files provided:
+${filePreview}
+
+Based on the user's request and the provided files, determine what changes need to be made to each file. For each file that needs changes, provide:
+
+1. filePath: The path to the file
+2. overview: A clear overview of the changes that need to be done to this file
+3. operation: The type of operation (new_file, delete_file, or modify_file)
+
+Focus on providing high-level overviews of what needs to be accomplished for each file, not the specific code changes. This is a planning step.
+`;
+
+    const response = await completeStructured<ChangeOverviews>({
+      role: `You are a software architect planning code changes. Provide clear overviews of the changes that need to be done to each file`,
+      user: prompt,
+      schema: ChangeOverviewsSchema,
+      name: "change-overviews",
+    });
+
+    return response.overviews;
+  }
+
+  export async function generateChangesForFile(
+    intent: Intent,
+    file: FileContext,
+    fileDescription: string
+  ): Promise<Change[]> {
+    const filePreview = formatFilePreviews([file], true);
+
+    const prompt = `
+${intent.description}
+
+File-specific task: ${fileDescription}
+
+File: ${file.path}
+${filePreview}
+
+Based on this specific file and the description of what needs to be done, generate precise code changes for this file only.
+
+Generate a JSON response with a "changes" array containing change objects. Each change object should have:
+1. operation: [new_file, delete_file, modify_file]
+2. filePath: The path to the file being created, deleted or modified
+3. modificationType: [replace_block, add_block, remove_block, none]. For deleted files, use type none.
+4. modificationDescription: The description of the modification relative to the code blocks. Leave empty if not applicable.
+5. oldCodeBlock: Applicable when modifying existing files. Leave empty if not applicable.
+6. newCodeBlock: Applicable when modifying existing files or creating new ones. Leave empty if not applicable.
+
+Focus on generating precise changes for this specific file while maintaining high code quality.
+For modifications, generate multiple changes per file if necessary.
+
+CRITICAL: Return ONLY valid JSON. Do not use backticks, template literals, or multi-line strings.
+Escape all quotes and newlines properly in JSON strings.
+
+Use \\n for newlines within strings, not actual line breaks.
+Use \" for quotes within strings.
+
+Return the response in this exact format:
+{
+  "changes": [
+    {
+      "operation": "modify_file",
+      "filePath": "${file.path}",
+      "modificationType": "add_block",
+      "modificationDescription": "Description of change",
+      "oldCodeBlock": "",
+      "newCodeBlock": "// New code here\\nfunction example() {\\n  return true;\\n}"
+    }
+  ]
+}
+`;
+
+    const result = await completeStructured<Changes>({
+      role: "You are a senior software engineer generating precise code changes for a specific file. Generate high-quality, production-ready code changes to implement the following request",
+      user: prompt,
+      schema: ChangesSchema,
+      name: "changes",
+    });
+
+    return result.changes;
   }
 
   export async function generateChanges(

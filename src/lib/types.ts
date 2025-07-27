@@ -3,6 +3,8 @@ import {
   IntentSchema,
   ChangeSchema,
   ChangesSchema,
+  ChangeOverviewSchema,
+  ChangeOverviewsSchema,
   RelevantFilePathsSchema,
 } from "./schemas";
 
@@ -25,6 +27,8 @@ export interface SemanticInfo {
 export type Intent = z.infer<typeof IntentSchema>;
 export type Change = z.infer<typeof ChangeSchema>;
 export type Changes = z.infer<typeof ChangesSchema>;
+export type ChangeOverview = z.infer<typeof ChangeOverviewSchema>;
+export type ChangeOverviews = z.infer<typeof ChangeOverviewsSchema>;
 export type RelevantFilePaths = z.infer<typeof RelevantFilePathsSchema>;
 
 export interface PipelineContext {
@@ -34,6 +38,7 @@ export interface PipelineContext {
   projectRoot: string;
   projectTree?: string;
   intent: Intent;
+  changeOverviews: ChangeOverview[];
   changes: Change[];
   answer?: string;
   result: {

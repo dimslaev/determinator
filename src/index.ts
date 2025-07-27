@@ -6,6 +6,7 @@ import {
   analyzeIntent,
   discoverFiles,
   // extractRelevantCodeBlocks,
+  prepareChanges,
   generateChanges,
   writeChanges,
   applyChanges,
@@ -45,6 +46,7 @@ export async function processRequest(
       filePaths: [],
       searchTerms: [],
     },
+    changeOverviews: [],
     changes: [],
     result: {
       modifiedFiles: [],
@@ -68,9 +70,11 @@ export async function processRequest(
     },
     {
       when: isEditMode,
-      steps: writeOnly
-        ? [generateChanges, writeChanges]
-        : [generateChanges, applyChanges],
+      steps: [
+        prepareChanges,
+        generateChanges,
+        writeOnly ? writeChanges : applyChanges,
+      ],
     }
   );
 

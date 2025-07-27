@@ -62,6 +62,28 @@ export const ChangesSchema = z.object({
     .describe("List of all file changes to be made using hybrid approach"),
 });
 
+export const ChangeOverviewSchema = z.object({
+  filePath: z
+    .string()
+    .min(1, "File path cannot be empty")
+    .describe("Path to the file being modified"),
+  operation: z
+    .enum(["new_file", "delete_file", "modify_file"])
+    .describe("Type of change operation"),
+  overview: z
+    .string()
+    .min(1, "Overview cannot be empty")
+    .describe("Description of the changes that need to be applied to the file"),
+});
+
+export const ChangeOverviewsSchema = z.object({
+  overviews: z
+    .array(ChangeOverviewSchema)
+    .describe(
+      "List of change overviews for each file, ordered in terms of which file changes need to be done first."
+    ),
+});
+
 export const RelevantFilePathsSchema = z.object({
   filePaths: z
     .array(z.string())
